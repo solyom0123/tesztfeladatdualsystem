@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        body{
+            background-color: beige;
+        }
+        table{
+            border: 1px black double;
+            padding: 10px;
+        }
+        td{
+            border: 1px black double;
+            padding: 10px;
+        }
+        th{
+            background-color:gray;
+            color: antiquewhite;
+            padding: 10px;
+        }
+        button{
+            background-color:gray;
+            color: antiquewhite;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        var link = "http://localhost:8081/"
+        var rate = 0;
+        function init(){
+            getRate();
+            listInvoice();
+        }
+
+        function listInvoice() {
+            $.get(link+"invoice/list", function (data, status) {
+                var returnRawData=data;
+                var table = '<table><tr><th>customer NAME</th><th>ISSUE DATE</th><th>DUE DATE</th><th>COMMENT</th><th>CALCULATED PRICE</th><th>CALCULATED PRICE IN EUR</th><th>DETAILS</th></tr>'
+                for(var i =0;i<returnRawData.list.length;i++){
+                    var item = returnRawData.list[i];
+                    table +='<tr name="row"><td style="display: none">'+item.id+'</td><td>'+item.customerName+'</td><td>'+item.issueDate+'</td><td>'+item.dueDate+'</td><td>'+item.comment+'</td><td><div id="huf_'+item.id+'"></div></td><td><div id="eur_'+item.id+'"></div></td>';
+                    table +='<td><button onclick="getOneInvoice('+item.id+')">DETAILS</button></td></tr>';
+                }
+                table+="</table>";
+                document.getElementById("table").innerHTML=table;
+                promiseCall(0);
+
+            });
+        }
+
+        function getRate() {
+            $.get(link+"change/find/EUR", function (data, status) {
+                rate =  data.item;
+            });
+        }
+
+        function promiseCall(i){
+            var rows = document.getElementsByName("row");
+            var cells = rows[i].getElementsByTagName("td");
+            $.get(link + "invoiceitem/price/" + cells[0].innerHTML, function (adat, status) {
+                document.getElementById("huf_"+cells[0].innerHTML).innerHTML = adat.item +" HUF";
+                document.getElementById("eur_"+cells[0].innerHTML).innerHTML = adat.item/rate +" EUR";
+                if(i<rows.length-1) {
+                    promiseCall(i+1);
+                }
+            })
+        }
+        function promiseCallWithId(i){
+            var rows = document.getElementById("huf_"+i);
+            var eurRow = document.getElementById("eur_"+i);
+            $.get(link + "invoiceitem/price/" + i, function (adat, status) {
+               rows.innerHTML = adat.item +" HUF";
+               eurRow.innerHTML = adat.item/rate +" EUR";
+            })
+        }
+        function getOneInvoice(i){
+            $.get(link + "invoice/" + i, function (adat, status) {
+                var table = '<table><tr><th>customer NAME</th><td>'+adat.item.customerName+'</td></tr><tr><th>ISSUE DATE</th><td>'+adat.item.issueDate+'</td></tr><tr><th>DUE DATE</th><td>'+adat.item.dueDate+'</td></tr><tr><th>COMMENT</th><td>'+adat.item.comment+'</td></tr><tr ><th>CALCULATED PRICE</th><td><div id="huf_'+adat.item.id+'"></td></tr><tr ><th></th><td><div id="eur_'+adat.item.id+'"></td></tr></table><table><tr><th>PRODUCT NAME</th><th>QUANTITY</th><th>UNIT PRICE IN HUF</th><th>CALCULATED  Total PRICE</th><th>CALCULATED Total PRICE in EUR</th></th></tr>';
+                for(var j =0; j<adat.item.invoiceItems.length;j++){
+                    var invoiceItem = adat.item.invoiceItems[j];
+                    table +='<tr name="row"><td>'+invoiceItem.productName+'</td><td>'+invoiceItem.quantity+'</td><td>'+invoiceItem.unitPrice+' HUF</td><td>'+invoiceItem.totalItemPrice+' HUF</td><td>'+(invoiceItem.totalItemPrice/rate)+' EUR</td></tr>';
+                }
+                table+="</table>";
+                document.getElementById("table").innerHTML=table;
+                promiseCallWithId(i);
+            })
+        }
+    </script>
+</head>
+<body>
+<button onclick="listInvoice()">INVOICES</button>
+<div id="table"></div>
+<br>
+<script>
+    init();
+</script>
+</body>
+</html>

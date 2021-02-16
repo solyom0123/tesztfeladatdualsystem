@@ -1,0 +1,38 @@
+<MNBCurrentExchangeRates>
+    <Day date="2021-02-16">
+        <Rate unit="1" curr="AUD">229,27000</Rate>
+        <Rate unit="1" curr="BGN">182,86000</Rate>
+        <Rate unit="1" curr="BRL">54,80000</Rate>
+        <Rate unit="1" curr="CAD">232,75000</Rate>
+        <Rate unit="1" curr="CHF">331,16000</Rate>
+        <Rate unit="1" curr="CNY">45,57000</Rate>
+        <Rate unit="1" curr="CZK">13,91000</Rate>
+        <Rate unit="1" curr="DKK">48,09000</Rate>
+        <Rate unit="1" curr="EUR">357,65000</Rate>
+        <Rate unit="1" curr="GBP">409,89000</Rate>
+        <Rate unit="1" curr="HKD">37,96000</Rate>
+        <Rate unit="1" curr="HRK">47,23000</Rate>
+        <Rate unit="100" curr="IDR">2,11000</Rate>
+        <Rate unit="1" curr="ILS">90,82000</Rate>
+        <Rate unit="1" curr="INR">4,05000</Rate>
+        <Rate unit="1" curr="ISK">2,30000</Rate>
+        <Rate unit="100" curr="JPY">279,38000</Rate>
+        <Rate unit="100" curr="KRW">26,72000</Rate>
+        <Rate unit="1" curr="MXN">14,73000</Rate>
+        <Rate unit="1" curr="MYR">73,02000</Rate>
+        <Rate unit="1" curr="NOK">35,17000</Rate>
+        <Rate unit="1" curr="NZD">213,70000</Rate>
+        <Rate unit="1" curr="PHP">6,11000</Rate>
+        <Rate unit="1" curr="PLN">79,66000</Rate>
+        <Rate unit="1" curr="RON">73,34000</Rate>
+        <Rate unit="1" curr="RSD">3,04000</Rate>
+        <Rate unit="1" curr="RUB">4,01000</Rate>
+        <Rate unit="1" curr="SEK">35,63000</Rate>
+        <Rate unit="1" curr="SGD">222,34000</Rate>
+        <Rate unit="1" curr="THB">9,85000</Rate>
+        <Rate unit="1" curr="TRY">42,49000</Rate>
+        <Rate unit="1" curr="UAH">10,58000</Rate>
+        <Rate unit="1" curr="USD">294,27000</Rate>
+        <Rate unit="1" curr="ZAR">20,38000</Rate>
+    </Day>
+</MNBCurrentExchangeRates>

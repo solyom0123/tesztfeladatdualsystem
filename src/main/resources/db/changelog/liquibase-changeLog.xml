@@ -1,0 +1,35 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet author="Bebesi Andras" id="init">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="invoice"/>
+            </not>
+            <not>
+                <tableExists tableName="invoice_item"/>
+            </not>
+        </preConditions>
+        <sqlFile dbms="oracle"
+                 path="changelogs/initial/invoice.sql"
+                 relativeToChangelogFile="true"/>
+
+        <sqlFile dbms="oracle"
+                 path="changelogs/initial/invoiceitem.sql"
+                 relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet author="Bebesi Andras" id="insert data">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="invoice"/>
+            <tableExists tableName="invoice_item"/>
+        </preConditions>
+        <sqlFile dbms="oracle"
+                 path="changelogs/updates/patch_01.sql"
+                 relativeToChangelogFile="true"/>
+    </changeSet>
+
+</databaseChangeLog>
