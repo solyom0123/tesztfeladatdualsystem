@@ -1,6 +1,7 @@
 package com.bebesi.andras.teszt.feladat.dual.system.common.Invoice;
 
 import com.bebesi.andras.teszt.feladat.dual.system.common.invoiceitem.InvoiceItemEntry;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -20,5 +21,4 @@ public class InvoiceEntry implements Serializable {
     private Instant createdOn;
     private Instant updatedOn;
     private List<InvoiceItemEntry> invoiceItems;
-
 }

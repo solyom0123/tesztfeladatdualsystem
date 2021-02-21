@@ -1,5 +1,6 @@
 package com.bebesi.andras.teszt.feladat.dual.system.backend.invoice;
 
+import com.bebesi.andras.teszt.feladat.dual.system.common.request.SingleRequest;
 import com.bebesi.andras.teszt.feladat.dual.system.ejb.Invoice.InvoiceEntity;
 import com.bebesi.andras.teszt.feladat.dual.system.ejb.Invoice.InvoiceRepository;
 import com.bebesi.andras.teszt.feladat.dual.system.ejb.Mappers.InvoiceMapper;
@@ -7,9 +8,7 @@ import com.bebesi.andras.teszt.feladat.dual.system.common.Invoice.InvoiceEntry;
 import com.bebesi.andras.teszt.feladat.dual.system.common.response.ListResponse;
 import com.bebesi.andras.teszt.feladat.dual.system.common.response.SingleResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +19,6 @@ public class InvoiceRestService {
 
     private final InvoiceRepository invoiceRepository;
     private final InvoiceMapper invoiceMapper;
-
     private final String endpoint = "/invoice";
 
     public InvoiceRestService(
@@ -48,5 +46,17 @@ public class InvoiceRestService {
         return response;
     }
 
+    @PostMapping(endpoint+"/new")
+    public SingleResponse<InvoiceEntry> create(@RequestBody SingleRequest<InvoiceEntry> request){
+        SingleResponse<InvoiceEntry> response= new SingleResponse<>();
+        InvoiceEntry local = new InvoiceEntry();
+        local.setComment(request.getItem().getComment());
+        local.setCustomerName(request.getItem().getCustomerName());
+        local.setDueDate(request.getItem().getDueDate());
+        local.setIssueDate(request.getItem().getIssueDate());
+        InvoiceEntity invoice = invoiceRepository.save(invoiceMapper.toEntity(local));
+        response.setItem(invoiceMapper.toDto(invoice));
+        return response;
+    }
 
 }

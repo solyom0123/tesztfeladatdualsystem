@@ -2,6 +2,7 @@ package com.bebesi.andras.teszt.feladat.dual.system.ejb.invoiceitem;
 
 import com.bebesi.andras.teszt.feladat.dual.system.ejb.Invoice.InvoiceEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -30,7 +31,9 @@ public class InvoiceItemEntity {
     @Column(name = "quantity",nullable = false)
     private Long quantity;
 
-    @Column(name = "total_item_price",nullable = false)
+    @JsonInclude()
+    @Transient
+    @Column(name = "total_item_price")
     private Long totalItemPrice;
 
     @Column(name = "created_on")

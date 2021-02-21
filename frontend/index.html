@@ -1,89 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <style>
-        body{
-            background-color: beige;
-        }
-        table{
-            border: 1px black double;
-            padding: 10px;
-        }
-        td{
-            border: 1px black double;
-            padding: 10px;
-        }
-        th{
-            background-color:gray;
-            color: antiquewhite;
-            padding: 10px;
-        }
-        button{
-            background-color:gray;
-            color: antiquewhite;
-        }
-    </style>
     <meta charset="UTF-8">
     <title>Title</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: beige;
+        }
+
+        table {
+            border: 1px black double;
+            padding: 10px;
+        }
+
+        td {
+            border: 1px black double;
+            padding: 10px;
+        }
+
+        th {
+            background-color: gray;
+            color: antiquewhite;
+            padding: 10px;
+        }
+
+        button {
+            background-color: gray;
+            color: antiquewhite;
+        }
+    </style>
+    <script>
+        class Invoice {
+            constructor(customerName, issueDate, dueDate, comment) {
+                this.customerName = customerName;
+                this.issueDate = issueDate;
+                this.dueDate = dueDate;
+                this.comment = comment;
+                this.createdOn = "";
+                this.updatedOn = "";
+                this.invoiceItems = new Array();
+                this.id = "";
+            }
+
+            addItem(item) {
+                this.invoiceItems[this.invoiceItems.length] = item;
+            }
+        }
+    </script>
+    <script>
+        class InvoiceItem {
+            constructor(productName, unitPrice, quantity) {
+                this.productName = productName;
+                this.unitPrice = unitPrice;
+                this.quantity = quantity;
+                this.createdOn = "";
+                this.updatedOn = "";
+                this.id = "";
+                this.invoiceId="";
+            }
+            setInvoiceId(id){
+                this.invoiceId= id;
+            }
+        }
+    </script>
     <script>
         var link = "http://localhost:8081/"
         var rate = 0;
-        function init(){
+        var invoice = "";
+
+        function hideModals() {
+            document.getElementById("invoice-modal").style.display = "none";
+            document.getElementById("invoiceItem-modal").style.display = "none";
+        }
+
+        function init() {
             getRate();
+            hideModals();
             listInvoice();
         }
 
-        function listInvoice() {
-            $.get(link+"invoice/list", function (data, status) {
-                var returnRawData=data;
-                var table = '<table><tr><th>customer NAME</th><th>ISSUE DATE</th><th>DUE DATE</th><th>COMMENT</th><th>CALCULATED PRICE</th><th>CALCULATED PRICE IN EUR</th><th>DETAILS</th></tr>'
-                for(var i =0;i<returnRawData.list.length;i++){
-                    var item = returnRawData.list[i];
-                    table +='<tr name="row"><td style="display: none">'+item.id+'</td><td>'+item.customerName+'</td><td>'+item.issueDate+'</td><td>'+item.dueDate+'</td><td>'+item.comment+'</td><td><div id="huf_'+item.id+'"></div></td><td><div id="eur_'+item.id+'"></div></td>';
-                    table +='<td><button onclick="getOneInvoice('+item.id+')">DETAILS</button></td></tr>';
+        function makeTableRowToShow(invoiceItem) {
+            return "<tr><td>"+invoiceItem.productName+"</td>" +
+                "<td>"+invoiceItem.unitPrice+"</td>" +
+                "<td>"+invoiceItem.quantity+"</td>" +
+                "<td>"+invoiceItem.unitPrice*invoiceItem.quantity+"</td>" +
+                "<td>"+(invoiceItem.unitPrice*invoiceItem.quantity)/rate+"</td></tr>"
+        }
+
+        function saveItem() {
+            if(invoice == ""){
+                let name =document.getElementById("name").value;
+                let issue= document.getElementById("issue").value;
+                let due=document.getElementById("due").value;
+                let comment=document.getElementById("comment").value;
+
+                invoice = new Invoice(name,issue,due,comment);
+            }
+            let nameItem =document.getElementById("nameItem").value;
+            let quantity= document.getElementById("quantity").value;
+            let unitPrice=document.getElementById("unitPrice").value;
+            let invoiceItem = new InvoiceItem(nameItem,quantity,unitPrice);
+            invoice.addItem(invoiceItem);
+            let tableRow = makeTableRowToShow(invoiceItem);
+            document.getElementById("items").innerHTML = document.getElementById("items").innerHTML+tableRow;
+        }
+
+        function showInvoiceModal() {
+            invoice = "";
+            document.getElementById("invoice-modal").style.display = "block";
+            document.getElementById("name").value = "";
+            document.getElementById("issue").value = "";
+            document.getElementById("due").value = "";
+            document.getElementById("comment").value = "";
+            document.getElementById("items").innerHTML = '    <tr>\n' +
+                '                        <th>name</th>\n' +
+                '                        <th>unitPrice</th>\n' +
+                '                        <th>quantity</th>\n' +
+                '                        <th>totalItemPrice</th>\n' +
+                '                        <th>totalItemPriceInEuro</th>\n' +
+                '                    </tr>\n' +
+                '                '
+        }
+
+        function promiseSaveCallInvoiceItem(result, invoice, number) {
+            let invoiceItem = invoice.invoiceItems[number];
+            invoiceItem.invoiceId= result.item.id;
+            $.ajax({
+                type: "POST",
+                url: link + "invoiceitem/new",
+                data: JSON.stringify({ item: invoiceItem }),
+                contentType: "application/json; charset=utf-8",
+                success: function(data){
+                    if(invoice.invoiceItems.length-1>number) {
+                        promiseSaveCallInvoiceItem(result, invoice, number+1);
+                    }else{
+                        listInvoice();
+                    }
                 }
-                table+="</table>";
-                document.getElementById("table").innerHTML=table;
+            });
+        }
+
+        function sendInvoice() {
+            let name =document.getElementById("name").value;
+            let issue= document.getElementById("issue").value;
+            let due=document.getElementById("due").value;
+            let comment=document.getElementById("comment").value;
+
+            if(invoice == ""){
+                invoice = new Invoice(name,issue,due,comment);
+            }else{
+                invoice.customerName= name;
+                invoice.issueDate = issue;
+                invoice.dueDate = due;
+                invoice.comment = comment;
+            }
+            $.ajax({
+                type: "POST",
+                url: link + "invoice/new",
+                data: JSON.stringify({ item: invoice }),
+                contentType: "application/json; charset=utf-8",
+                success: function(data){
+                        promiseSaveCallInvoiceItem(data,invoice,0);
+                }
+            });
+        }
+
+        function showInvoiceItemModal() {
+            document.getElementById("invoiceItem-modal").style.display = "block";
+            document.getElementById("nameItem").value = "";
+            document.getElementById("unitPrice").value = "";
+            document.getElementById("quantity").value = "";
+        }
+
+        function listInvoice() {
+            $.get(link + "invoice/list", function (data, status) {
+                var returnRawData = data;
+                var table = '<table><tr><th>customer NAME</th><th>ISSUE DATE</th><th>DUE DATE</th><th>COMMENT</th><th>CALCULATED PRICE</th><th>CALCULATED PRICE IN EUR</th><th>DETAILS</th></tr>'
+                for (var i = 0; i < returnRawData.list.length; i++) {
+                    var item = returnRawData.list[i];
+                    table += '<tr name="row"><td style="display: none">' + item.id + '</td><td>' + item.customerName + '</td><td>' + item.issueDate + '</td><td>' + item.dueDate + '</td><td>' + item.comment + '</td><td><div id="huf_' + item.id + '"></div></td><td><div id="eur_' + item.id + '"></div></td>';
+                    table += '<td><button onclick="getOneInvoice(' + item.id + ')">DETAILS</button></td></tr>';
+                }
+                table += "</table>";
+                document.getElementById("table").innerHTML = table;
                 promiseCall(0);
 
             });
         }
 
         function getRate() {
-            $.get(link+"change/find/EUR", function (data, status) {
-                rate =  data.item;
+            $.get(link + "change/find/EUR", function (data, status) {
+                rate = data.item;
             });
         }
 
-        function promiseCall(i){
+        function promiseCall(i) {
             var rows = document.getElementsByName("row");
             var cells = rows[i].getElementsByTagName("td");
             $.get(link + "invoiceitem/price/" + cells[0].innerHTML, function (adat, status) {
-                document.getElementById("huf_"+cells[0].innerHTML).innerHTML = adat.item +" HUF";
-                document.getElementById("eur_"+cells[0].innerHTML).innerHTML = adat.item/rate +" EUR";
-                if(i<rows.length-1) {
-                    promiseCall(i+1);
+                document.getElementById("huf_" + cells[0].innerHTML).innerHTML = adat.item + " HUF";
+                document.getElementById("eur_" + cells[0].innerHTML).innerHTML = adat.item / rate + " EUR";
+                if (i < rows.length - 1) {
+                    promiseCall(i + 1);
                 }
             })
         }
-        function promiseCallWithId(i){
-            var rows = document.getElementById("huf_"+i);
-            var eurRow = document.getElementById("eur_"+i);
+
+        function promiseCallWithId(i) {
+            var rows = document.getElementById("huf_" + i);
+            var eurRow = document.getElementById("eur_" + i);
             $.get(link + "invoiceitem/price/" + i, function (adat, status) {
-               rows.innerHTML = adat.item +" HUF";
-               eurRow.innerHTML = adat.item/rate +" EUR";
+                rows.innerHTML = adat.item + " HUF";
+                eurRow.innerHTML = adat.item / rate + " EUR";
             })
         }
-        function getOneInvoice(i){
+
+        function getOneInvoice(i) {
             $.get(link + "invoice/" + i, function (adat, status) {
-                var table = '<table><tr><th>customer NAME</th><td>'+adat.item.customerName+'</td></tr><tr><th>ISSUE DATE</th><td>'+adat.item.issueDate+'</td></tr><tr><th>DUE DATE</th><td>'+adat.item.dueDate+'</td></tr><tr><th>COMMENT</th><td>'+adat.item.comment+'</td></tr><tr ><th>CALCULATED PRICE</th><td><div id="huf_'+adat.item.id+'"></td></tr><tr ><th></th><td><div id="eur_'+adat.item.id+'"></td></tr></table><table><tr><th>PRODUCT NAME</th><th>QUANTITY</th><th>UNIT PRICE IN HUF</th><th>CALCULATED  Total PRICE</th><th>CALCULATED Total PRICE in EUR</th></th></tr>';
-                for(var j =0; j<adat.item.invoiceItems.length;j++){
+                var table = '<table><tr><th>customer NAME</th><td>' + adat.item.customerName + '</td></tr><tr><th>ISSUE DATE</th><td>' + adat.item.issueDate + '</td></tr><tr><th>DUE DATE</th><td>' + adat.item.dueDate + '</td></tr><tr><th>COMMENT</th><td>' + adat.item.comment + '</td></tr><tr ><th>CALCULATED PRICE</th><td><div id="huf_' + adat.item.id + '"></td></tr><tr ><th></th><td><div id="eur_' + adat.item.id + '"></td></tr></table><table><tr><th>PRODUCT NAME</th><th>QUANTITY</th><th>UNIT PRICE IN HUF</th><th>CALCULATED  Total PRICE</th><th>CALCULATED Total PRICE in EUR</th></th></tr>';
+                for (var j = 0; j < adat.item.invoiceItems.length; j++) {
                     var invoiceItem = adat.item.invoiceItems[j];
-                    table +='<tr name="row"><td>'+invoiceItem.productName+'</td><td>'+invoiceItem.quantity+'</td><td>'+invoiceItem.unitPrice+' HUF</td><td>'+invoiceItem.totalItemPrice+' HUF</td><td>'+(invoiceItem.totalItemPrice/rate)+' EUR</td></tr>';
+                    table += '<tr name="row"><td>' + invoiceItem.productName + '</td><td>' + invoiceItem.quantity + '</td><td>' + invoiceItem.unitPrice + ' HUF</td><td>' + (invoiceItem.unitPrice*invoiceItem.quantity) + ' HUF</td><td>' + ((invoiceItem.unitPrice*invoiceItem.quantity) / rate) + ' EUR</td></tr>';
                 }
-                table+="</table>";
-                document.getElementById("table").innerHTML=table;
+                table += "</table>";
+                document.getElementById("table").innerHTML = table;
                 promiseCallWithId(i);
             })
         }
@@ -93,6 +236,66 @@
 <button onclick="listInvoice()">INVOICES</button>
 <div id="table"></div>
 <br>
+<button type="button" onclick="showInvoiceModal()" data-toggle="modal" data-target="#invoice-modal">Add new invoice</button>
+
+<div id="invoice-modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">new Invoice</h4>
+            </div>
+            <div class="modal-body">
+                <form id="invoice">
+                   name: <input id="name" type="text"><br>
+                    issue: <input id="issue" type="date"><br>
+                    due: <input id="due" type="date"><br>
+                    comment:<input id="comment" type="text">
+                </form>
+                <button type="button" onclick="showInvoiceItemModal()" data-toggle="modal" data-target="#invoiceItem-modal">Add new item</button>
+                <table id="items">
+                    <tr>
+                        <th>name</th>
+                        <th>unitPrice</th>
+                        <th>quantity</th>
+                        <th>totalItemPrice</th>
+                        <th>totalItemPriceInEuro</th>
+                    </tr>
+                </table>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="sendInvoice()" data-toggle="modal" data-target="#invoice-modal">Send invoice</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div id="invoiceItem-modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">new InvoiceItem</h4>
+            </div>
+            <div class="modal-body">
+                <form id="invoiceItem">
+                   name: <input id="nameItem" type="text"> <br>
+                   unitPrice: <input id="unitPrice" type="number"><br>
+                   quantity: <input id="quantity" type="number">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="saveItem()">Add new item</button>
+            </div>
+        </div>
+
+    </div>
+</div>
 <script>
     init();
 </script>
