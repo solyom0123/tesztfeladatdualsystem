@@ -31,5 +31,4 @@ http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
                  path="changelogs/updates/patch_01.sql"
                  relativeToChangelogFile="true"/>
     </changeSet>
-
 </databaseChangeLog>

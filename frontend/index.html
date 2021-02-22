@@ -125,24 +125,6 @@
                 '                '
         }
 
-        function promiseSaveCallInvoiceItem(result, invoice, number) {
-            let invoiceItem = invoice.invoiceItems[number];
-            invoiceItem.invoiceId= result.item.id;
-            $.ajax({
-                type: "POST",
-                url: link + "invoiceitem/new",
-                data: JSON.stringify({ item: invoiceItem }),
-                contentType: "application/json; charset=utf-8",
-                success: function(data){
-                    if(invoice.invoiceItems.length-1>number) {
-                        promiseSaveCallInvoiceItem(result, invoice, number+1);
-                    }else{
-                        listInvoice();
-                    }
-                }
-            });
-        }
-
         function sendInvoice() {
             let name =document.getElementById("name").value;
             let issue= document.getElementById("issue").value;
@@ -163,8 +145,8 @@
                 data: JSON.stringify({ item: invoice }),
                 contentType: "application/json; charset=utf-8",
                 success: function(data){
-                        promiseSaveCallInvoiceItem(data,invoice,0);
-                }
+                        listInvoice();
+                  }
             });
         }
 

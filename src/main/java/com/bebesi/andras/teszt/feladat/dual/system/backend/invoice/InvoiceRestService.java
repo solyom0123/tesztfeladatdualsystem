@@ -49,12 +49,11 @@ public class InvoiceRestService {
     @PostMapping(endpoint+"/new")
     public SingleResponse<InvoiceEntry> create(@RequestBody SingleRequest<InvoiceEntry> request){
         SingleResponse<InvoiceEntry> response= new SingleResponse<>();
-        InvoiceEntry local = new InvoiceEntry();
-        local.setComment(request.getItem().getComment());
-        local.setCustomerName(request.getItem().getCustomerName());
-        local.setDueDate(request.getItem().getDueDate());
-        local.setIssueDate(request.getItem().getIssueDate());
-        InvoiceEntity invoice = invoiceRepository.save(invoiceMapper.toEntity(local));
+        InvoiceEntity entity = invoiceMapper.toEntity(request.getItem());
+        for (int i =0;i<entity.getInvoiceItems().size();i++){
+            entity.getInvoiceItems().get(i).setInvoice(entity);
+        }
+        InvoiceEntity invoice = invoiceRepository.save(entity);
         response.setItem(invoiceMapper.toDto(invoice));
         return response;
     }

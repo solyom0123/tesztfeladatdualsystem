@@ -31,7 +31,6 @@ public class InvoiceItemEntity {
     @Column(name = "quantity",nullable = false)
     private Long quantity;
 
-    @JsonInclude()
     @Transient
     @Column(name = "total_item_price")
     private Long totalItemPrice;
